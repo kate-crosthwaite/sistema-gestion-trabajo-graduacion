@@ -13,6 +13,37 @@ Versión ejecutable de los tres casos de uso seleccionados, con CU-01 como sopor
 Los tres forman un proceso continuo: lo que produce un caso de uso es la precondición del siguiente
 (`Pendiente de validación` → `Requisitos validados` → `Revisión del asesor aprobada` o `Correcciones solicitadas`).
 
+## Cuentas de demostración
+
+Para facilitar la revisión y demostración del Sistema de Gestión de Modalidades de Egreso (SGME), se proporcionan las siguientes cuentas de acceso.
+
+**Contraseña única para todas las cuentas:** `Demo2026*`
+
+| Rol | Nombre | Correo institucional | Funcionalidad de prueba |
+|---|---|---|---|
+| Estudiante | Sofia Vega | `sofia.vega@utp.ac.pa` | Registrar una solicitud desde cero (CU-02). |
+| Estudiante | Juan Pérez | `juan.perez@utp.ac.pa` | Solicitud pendiente de validación. |
+| Estudiante | Ana Rodríguez | `ana.rodriguez@utp.ac.pa` | Solicitud ya validada. |
+| Estudiante | Carlos Mendoza | `carlos.mendoza@utp.ac.pa` | Comprobar error de consulta académica (FE-3). |
+| Secretaría Académica | María González | `maria.gonzalez@utp.ac.pa` | Validar requisitos académicos (CU-03). |
+| Profesor Asesor | Ing. Laura Martínez | `laura.martinez@utp.ac.pa` | Revisar solicitudes asignadas (CU-05). |
+| Profesor Asesor | Ing. Roberto Sánchez | `roberto.sanchez@utp.ac.pa` | Segundo asesor para comprobar la separación de solicitudes. |
+
+### Instrucciones de acceso
+
+1. Ejecutar el proyecto siguiendo las instrucciones de instalación.
+2. Abrir el navegador en `http://127.0.0.1:8000`.
+3. Introducir el correo institucional de cualquiera de las cuentas anteriores.
+4. Ingresar la contraseña común: `Demo2026*`.
+5. El sistema identificará automáticamente el rol y mostrará el módulo correspondiente.
+
+### Consideraciones
+
+- Todas las cuentas son de demostración.
+- La información académica utilizada es simulada.
+- Las cuentas permiten probar los casos de uso implementados en esta fase.
+- Los roles de Jefe de Departamento y Autoridad Académica no cuentan con acceso en esta versión.
+
 ## Requisitos y ejecución
 
 Python 3.10 o superior.
