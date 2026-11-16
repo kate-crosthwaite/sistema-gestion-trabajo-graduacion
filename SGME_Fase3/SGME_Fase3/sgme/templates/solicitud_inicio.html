@@ -1,0 +1,35 @@
+{# Kate Crosthwaite · 8-1009-1386
+   Inicio del estudiante: listado de sus solicitudes con estado y acceso al borrador o al detalle. #}
+{% extends "base.html" %}
+{% from "_macros.html" import estado, kpi with context %}
+{% block titulo %}Inicio{% endblock %}
+{% block h1 %}Mis solicitudes de modalidad de egreso{% endblock %}
+{% block migas %}<nav class="migas"><a href="{{ url_for('auth.inicio') }}">Inicio</a></nav>{% endblock %}
+{% block subtitulo %}Consulta el estado de tu trabajo de graduación, continúa tus borradores y registra una nueva modalidad de egreso.{% endblock %}
+{% block cuerpo %}
+{% set en_proceso = ['PENDIENTE_VALIDACION', 'REQUISITOS_VALIDADOS', 'REVISION_ASESOR_APROBADA', 'APROBADA_DEPARTAMENTO'] %}
+{% set atencion = ['CORRECCIONES_SOLICITADAS', 'RECHAZADA'] %}
+<div class="kpis">
+  {{ kpi('carpeta', solicitudes|length, 'Solicitudes registradas') }}
+  {{ kpi('lapiz', solicitudes|selectattr('estado', 'equalto', 'BORRADOR')|list|length, 'Borradores', 't-oro') }}
+  {{ kpi('reloj', solicitudes|selectattr('estado', 'in', en_proceso)|list|length, 'En proceso', 't-ok') }}
+  {{ kpi('alerta', solicitudes|selectattr('estado', 'in', atencion)|list|length, 'Requieren atención', 't-mal') }}
+</div>
+<div class="barra-superior"><a class="btn btn-primario" href="{{ url_for('solicitud.registrar') }}">{{ icono('nuevo', 16) }} Registrar modalidad de egreso</a></div>
+<section class="card">
+  <div class="tabla-envoltura"><table class="tabla">
+    <thead><tr><th>Número</th><th>Modalidad</th><th>Título del trabajo</th><th>Registro</th><th>Estado</th><th></th></tr></thead>
+    <tbody>
+    {% for s in solicitudes %}
+      <tr>
+        <td class="num">{{ s.numero }}</td><td>{{ s.modalidad or '—' }}</td><td>{{ s.titulo or 'Sin título' }}</td>
+        <td class="num">{{ s.fecha_registro|fecha }}</td><td>{{ estado(s.estado) }}</td>
+        <td class="der">{% if s.estado == 'BORRADOR' %}
+          <a class="btn btn-sec btn-sm" href="{{ url_for('solicitud.registrar', solicitud_id=s.id) }}">Continuar borrador</a>
+        {% else %}<a class="btn btn-sec btn-sm" href="{{ url_for('solicitud.detalle', solicitud_id=s.id) }}">Ver detalle</a>{% endif %}</td>
+      </tr>
+    {% else %}<tr><td colspan="6" class="vacio">Aún no ha registrado solicitudes. Use «Registrar modalidad de egreso» para comenzar.</td></tr>{% endfor %}
+    </tbody>
+  </table></div>
+</section>
+{% endblock %}

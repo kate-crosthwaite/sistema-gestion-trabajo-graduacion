@@ -1,0 +1,70 @@
+{# Kate Crosthwaite · 8-1009-1386
+   Plantilla base: franja y menú lateral por rol, encabezado con perfil, ruta de navegación, mensajes y diálogo de confirmación. #}
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block titulo %}SGME{% endblock %} · Sistema de Gestión de Modalidades de Egreso</title>
+  <link rel="icon" href="{{ url_for('static', filename='logo-utp.png') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/sgme.css') }}">
+</head>
+<body>
+{% if usuario %}
+<div class="app" id="app">
+  <aside class="lateral">
+    <div class="marca">
+      <img src="{{ url_for('static', filename='logo-utp.png') }}" alt="Escudo de la Universidad Tecnológica de Panamá">
+      <span>Universidad<br>Tecnológica<br>de Panamá</span>
+    </div>
+    <nav aria-label="Menú principal">
+      {% for item in menu %}<a href="{{ item.url }}" class="{{ 'activo' if item.activo }}">{{ icono(item.icono, 20) }}<span>{{ item.texto }}</span></a>{% endfor %}
+    </nav>
+    <form method="post" action="{{ url_for('auth.salir') }}">
+      <input type="hidden" name="csrf" value="{{ csrf() }}">
+      <button class="salir" type="submit">{{ icono('salir', 20) }}<span>Cerrar sesión</span></button>
+    </form>
+  </aside>
+  <div class="principal">
+    <header class="superior">
+      <div class="sistema">
+        <button type="button" class="boton-menu" id="menu-lateral" aria-label="Mostrar u ocultar el menú lateral">{{ icono('menu', 22) }}</button>
+        <span>Sistema de Gestión de Modalidades de Egreso</span>
+      </div>
+      <div class="derecha">
+        <span class="semestre">{{ icono('calendario', 15) }} {{ SEMESTRE }}</span>
+        <div class="perfil">
+          <span class="avatar" aria-hidden="true">{{ icono('usuario', 20) }}</span>
+          <div><strong>{{ usuario.nombre_completo }}</strong><small>{{ ETIQUETA_ROL[usuario.rol] }}</small></div>
+        </div>
+      </div>
+    </header>
+    <main class="contenido">
+      <section class="encabezado">
+        <div>
+          {% block migas %}<nav class="migas" aria-label="Ruta de navegación"><a href="{{ url_for('auth.inicio') }}">Inicio</a><span>›</span><span>{{ self.h1() }}</span></nav>{% endblock %}
+          <h1>{% block h1 %}{% endblock %}</h1>
+          <p class="subtitulo">{% block subtitulo %}{% endblock %}</p>
+        </div>
+        <div class="deco" aria-hidden="true">{{ icono('birrete', 96) }}</div>
+      </section>
+      {% include "_flash.html" %}
+      {% block cuerpo %}{% endblock %}
+    </main>
+  </div>
+</div>
+{% else %}
+{% block publico %}{% endblock %}
+{% endif %}
+<dialog id="dialogo">
+  <form method="dialog">
+    <p id="dialogo-texto"></p>
+    <div class="acciones-dialogo">
+      <button class="btn btn-neutro" id="dialogo-no" value="no">Cancelar</button>
+      <button class="btn btn-primario" value="si" autofocus>Aceptar</button>
+    </div>
+  </form>
+</dialog>
+<script src="{{ url_for('static', filename='js/sgme.js') }}"></script>
+</body>
+</html>

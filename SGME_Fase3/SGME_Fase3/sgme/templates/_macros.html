@@ -1,0 +1,88 @@
+{# Kate Crosthwaite · 8-1009-1386
+   Macros compartidas: dato y texto de solo lectura, estado, documentos con «Visualizar», progreso por etapas y registro de actividad. #}
+{% macro kpi(ico, valor, etiqueta, tono='') %}
+<div class="kpi {{ tono }}"><span class="kpi-ico">{{ icono(ico, 24) }}</span><div><strong>{{ valor }}</strong><span>{{ etiqueta }}</span></div></div>
+{% endmacro %}
+
+{% macro dato(etiqueta, valor, ico=None) %}
+<div class="dato"><span>{{ etiqueta }}</span><div class="caja">{% if ico %}{{ icono(ico, 16) }}{% endif %}{{ valor if valor not in (None, '') else '—' }}</div></div>
+{% endmacro %}
+
+{% macro bloqueado(etiqueta, valor) %}
+<label class="campo campo-bloqueado">{{ etiqueta }}
+  <span class="envuelto"><input value="{{ valor if valor not in (None, '') else 'No disponible' }}" readonly tabindex="-1" aria-readonly="true"
+    title="{{ valor if valor not in (None, '') else 'No disponible' }} · Dato obtenido con su correo institucional; no se puede editar">{{ icono('candado', 16) }}</span></label>
+{% endmacro %}
+
+{% macro texto(etiqueta, valor) %}
+<div class="dato"><span>{{ etiqueta }}</span><div class="caja texto">{{ valor if valor not in (None, '') else '—' }}</div></div>
+{% endmacro %}
+
+{% macro estado(clave) %}<span class="badge b-{{ clave|lower }}">{{ ETIQUETA_ESTADO.get(clave, clave) }}</span>{% endmacro %}
+
+{% macro documentos(docs, compacta=False) %}
+{% if compacta %}
+<div class="tabla-envoltura"><table class="tabla">
+  <thead><tr><th>Documento</th><th>Estado</th><th>Acción</th></tr></thead>
+  <tbody>
+  {% for d in docs %}
+    <tr>
+      <td class="doc-nombre">{{ d.nombre }}{% if d.obligatorio %}<i class="req">*</i>{% endif %}<small>{{ d.archivo.nombre_original if d.archivo else 'No cargado' }}{% if d.archivo %} · {{ d.archivo.fecha_carga|fecha }}{% endif %}</small></td>
+      <td><span class="badge b-doc-{{ d.estado|lower }}">{{ ETIQUETA_DOC[d.estado] }}</span></td>
+      <td>{% if d.archivo %}<a class="btn btn-sec btn-sm" target="_blank" rel="noopener" aria-label="Visualizar {{ d.nombre }}"
+             href="{{ url_for('solicitud.documento', archivo_id=d.archivo.id) }}">{{ icono('ojo', 15) }} Visualizar</a>{% endif %}</td>
+    </tr>
+  {% else %}<tr><td colspan="3" class="vacio">La solicitud no tiene documentos.</td></tr>{% endfor %}
+  </tbody>
+</table></div>
+{% else %}
+<div class="tabla-envoltura"><table class="tabla">
+  <thead><tr><th>Documento</th><th>Estado</th><th>Archivo</th><th>Fecha de carga</th><th>Acción</th></tr></thead>
+  <tbody>
+  {% for d in docs %}
+    <tr>
+      <td>{{ d.nombre }}{% if d.obligatorio %}<i class="req">*</i>{% endif %}</td>
+      <td><span class="badge b-doc-{{ d.estado|lower }}">{{ ETIQUETA_DOC[d.estado] }}</span></td>
+      <td>{{ d.archivo.nombre_original if d.archivo else 'No cargado' }}</td>
+      <td>{{ d.archivo.fecha_carga|fecha if d.archivo else '—' }}</td>
+      <td>{% if d.archivo %}<a class="btn btn-sec btn-sm" target="_blank" rel="noopener"
+             href="{{ url_for('solicitud.documento', archivo_id=d.archivo.id) }}">{{ icono('ojo', 15) }} Visualizar</a>{% endif %}</td>
+    </tr>
+  {% else %}<tr><td colspan="5" class="vacio">La solicitud no tiene documentos.</td></tr>{% endfor %}
+  </tbody>
+</table></div>
+{% endif %}
+{% endmacro %}
+
+{% macro etapas(s) %}
+<ol class="etapas">
+  {% for nombre, actor, situacion in etapas_del_proceso(s.estado, s.estado_origen_correccion) %}
+  <li class="{{ situacion }}">
+    <span class="nodo">{% if situacion == 'completada' %}{{ icono('check', 12) }}{% elif situacion == 'correcciones' %}{{ icono('alerta', 12) }}{% elif situacion == 'rechazada' %}{{ icono('equis', 12) }}{% endif %}</span>
+    <div>
+      <strong>{{ nombre }}</strong>
+      <small>Por: {{ actor }}</small>
+      {% if loop.first and s.estado != 'BORRADOR' %}<small>{{ s.fecha_registro|fecha }}</small>{% endif %}
+      {% if situacion == 'completada' %}<span class="etiqueta">{{ icono('check', 12) }} Completado</span>
+      {% elif situacion == 'actual' %}<span class="etiqueta">{{ icono('reloj', 12) }} En proceso</span>
+      {% elif situacion == 'correcciones' %}<span class="etiqueta">{{ icono('alerta', 12) }} Correcciones solicitadas</span>
+      {% elif situacion == 'rechazada' %}<span class="etiqueta">{{ icono('equis', 12) }} Rechazada</span>
+      {% else %}<small>Pendiente</small>{% endif %}
+    </div>
+  </li>
+  {% endfor %}
+</ol>
+{% endmacro %}
+
+{% macro registro(eventos) %}
+<ul class="registro">
+  {% for e in eventos|reverse %}
+  <li>
+    <strong>{{ e.accion }}</strong>
+    <small>{{ e.usuario_nombre }} · {{ ETIQUETA_ROL[e.rol] }} · {{ e.fecha|fecha }}</small>
+    {% if e.resultado %}<em>{{ e.resultado }}</em>{% endif %}
+    {% if e.detalle %}<p>{{ e.detalle }}</p>{% endif %}
+  </li>
+  {% else %}<li class="vacio">Aún no hay eventos registrados.</li>{% endfor %}
+</ul>
+{% endmacro %}

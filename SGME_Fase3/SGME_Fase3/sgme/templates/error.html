@@ -1,0 +1,14 @@
+{# Kate Crosthwaite · 8-1009-1386
+   Página de error genérica para acceso denegado, recurso inexistente, carga excedida y solicitud no válida. #}
+{% extends "base.html" %}
+{% block titulo %}{{ titulo }}{% endblock %}
+{% block h1 %}{{ titulo }}{% endblock %}
+{% block subtitulo %}{% endblock %}
+{% block cuerpo %}
+<section class="card"><p>{{ mensaje }}</p>
+  <p><a class="btn btn-primario" href="{{ url_for('auth.inicio') }}">Ir al inicio</a></p></section>
+{% endblock %}
+{% block publico %}
+<div class="acceso-formulario" style="min-height:100vh"><div class="acceso-caja"><h1>{{ titulo }}</h1><p class="nota">{{ mensaje }}</p>
+  <p><a class="btn btn-primario" href="{{ url_for('auth.login') }}">Ir al inicio de sesión</a></p></div></div>
+{% endblock %}

@@ -1,0 +1,74 @@
+{# Kate Crosthwaite · 8-1009-1386
+   Pantalla de CU-05: información de la solicitud, documentos, evaluación de cinco criterios, observaciones,
+   progreso del proceso, resumen de evaluación y datos del profesor. #}
+{% extends "base.html" %}
+{% from "_macros.html" import dato, texto, estado, documentos, etapas, registro with context %}
+{% block titulo %}Revisar {{ s.numero }}{% endblock %}
+{% block h1 %}Revisar Modalidad de Egreso{% endblock %}
+{% block subtitulo %}Evalúa los criterios académicos del trabajo y decide si apruebas la revisión o solicitas correcciones al estudiante.{% endblock %}
+{% block cuerpo %}
+{% set err = campos_error %}
+<form method="post" novalidate>
+<input type="hidden" name="csrf" value="{{ csrf() }}">
+<div class="pantalla p-2">
+  <div>
+    <section class="card"><h2>1. Información general de la solicitud</h2>
+      <div class="rejilla-4">
+        {{ dato('Número de solicitud', s.numero) }}{{ dato('Fecha de registro', s.fecha_registro|fecha, 'calendario') }}
+        <div class="dato"><span>Estado actual</span><div class="caja">{{ estado(s.estado) }}</div></div>{{ dato('Modalidad de egreso', s.modalidad) }}
+      </div></section>
+    <div class="dos-columnas">
+      <div class="col">
+        <section class="card"><h2>2. Información del estudiante</h2>
+          <div class="rejilla-2">
+            {{ dato('Cédula', s.cedula) }}{{ dato('Nombre completo', s.nombre_completo) }}{{ dato('Carrera', s.carrera) }}
+            {{ dato('Facultad', s.facultad) }}</div>
+          {{ dato('Correo institucional', s.correo_institucional, 'correo') }}</section>
+        <section class="card"><h2>3. Información de la modalidad de egreso</h2>
+          {{ dato('Título del trabajo', s.titulo) }}{{ texto('Descripción del trabajo', s.descripcion) }}{{ dato('Profesor asesor', s.asesor) }}</section>
+        <section class="card"><h2>4. Documentos presentados</h2>{{ documentos(s.documentos, true) }}</section>
+      </div>
+      <div class="col">
+        <section class="card"><h2>5. Evaluación académica del trabajo</h2>
+          <div class="filas-eval">
+            {% for c in r.criterios %}
+            <div class="fila-eval{{ ' invalido-fila' if ('crit_' ~ c.item_id) in err }}"><span>{{ c.nombre }}</span>
+              <select name="crit_{{ c.item_id }}" class="eval" aria-label="Estado de {{ c.nombre }}">
+                <option value="">Seleccione…</option>
+                {% for clave, etiqueta in ETIQUETA_EVAL.items() %}<option value="{{ clave }}" {{ 'selected' if c.estado == clave }}>{{ etiqueta }}</option>{% endfor %}
+              </select></div>
+            {% endfor %}
+          </div></section>
+        <section class="card"><h2>6. Observaciones del profesor</h2>
+          <label class="campo{{ ' invalido' if 'observaciones' in err }}"><span class="nota">Registra tus observaciones y recomendaciones sobre la modalidad de egreso.</span>
+            <textarea name="observaciones" id="observaciones" rows="12" data-max="1000" data-contador="#contador-observaciones"
+                      placeholder="Escribe aquí tus observaciones (obligatorias para solicitar correcciones).">{{ r.observaciones }}</textarea>
+            <span class="contador" id="contador-observaciones">0 / 1000</span></label></section>
+      </div>
+    </div>
+  </div>
+  <aside>
+    <section class="card"><h2>Historial del proceso</h2>{{ etapas(s) }}</section>
+    <section class="card"><h2>Resumen de evaluación</h2>
+      <div class="resumen">
+        <div class="r-ok"><strong data-cuenta="CUMPLE">0</strong><span>Cumple</span></div>
+        <div class="r-av"><strong data-cuenta="PENDIENTE">0</strong><span>Pendientes</span></div>
+        <div class="r-mal"><strong data-cuenta="NO_CUMPLE">0</strong><span>No cumple</span></div>
+      </div></section>
+    <section class="card"><h2>Información del profesor</h2>
+      <div class="docente"><span class="avatar" aria-hidden="true">{{ icono('usuario', 22) }}</span>
+        <div><strong>{{ usuario.nombre_completo }}</strong><small>{{ ETIQUETA_ROL[usuario.rol] }}</small></div></div>
+      {{ dato('Correo institucional', usuario.correo_institucional, 'correo') }}{{ dato('Departamento', usuario.departamento, 'edificio') }}</section>
+    <section class="card"><h2>Registro de actividad</h2>{{ registro(historial) }}</section>
+  </aside>
+</div>
+<div class="barra-acciones">
+  <a class="btn btn-neutro" href="{{ url_for('revision.listar') }}"
+     data-confirmar="¿Desea cancelar la revisión? Los cambios que no haya guardado se descartarán.">Cancelar</a>
+  <button class="btn btn-sec" type="submit" name="accion" value="borrador">Guardar borrador</button>
+  <button class="btn btn-peligro" type="submit" name="accion" value="correcciones"
+          data-requiere="#observaciones" data-mensaje-requiere="Para solicitar correcciones registre primero las observaciones.">{{ icono('alerta', 16) }} Solicitar correcciones</button>
+  <button class="btn btn-primario" type="submit" name="accion" value="aprobar">{{ icono('check', 16) }} Aprobar revisión</button>
+</div>
+</form>
+{% endblock %}

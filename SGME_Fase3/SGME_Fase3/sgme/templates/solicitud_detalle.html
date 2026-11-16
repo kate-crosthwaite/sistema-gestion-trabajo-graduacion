@@ -1,0 +1,26 @@
+{# Kate Crosthwaite · 8-1009-1386
+   Detalle de solo lectura de una solicitud: datos, documentos con «Visualizar», progreso por etapas y registro de actividad. #}
+{% extends "base.html" %}
+{% from "_macros.html" import dato, texto, estado, documentos, etapas, registro with context %}
+{% block titulo %}{{ s.numero }}{% endblock %}
+{% block h1 %}Solicitud {{ s.numero }}{% endblock %}
+{% block subtitulo %}Consulta los datos, los documentos, el progreso por etapas y el registro de actividad de la solicitud.{% endblock %}
+{% block cuerpo %}
+<div class="pantalla p-2">
+  <div>
+    <section class="card"><h2>Datos de la solicitud</h2>
+      <div class="rejilla-3">
+        <div class="dato"><span>Estado</span><div class="caja">{{ estado(s.estado) }}</div></div>{{ dato('Fecha de registro', s.fecha_registro|fecha, 'calendario') }}{{ dato('Modalidad de egreso', s.modalidad) }}
+        {{ dato('Cédula', s.cedula) }}{{ dato('Nombre completo', s.nombre_completo) }}{{ dato('Carrera', s.carrera) }}
+        {{ dato('Facultad', s.facultad) }}{{ dato('Correo institucional', s.correo_institucional, 'correo') }}{{ dato('Profesor asesor', s.asesor) }}
+      </div>
+      {{ dato('Título del trabajo', s.titulo) }}{{ texto('Descripción del trabajo', s.descripcion) }}</section>
+    <section class="card"><h2>Documentos</h2>{{ documentos(s.documentos) }}</section>
+  </div>
+  <aside>
+    <section class="card"><h2>Historial del proceso</h2>{{ etapas(s) }}</section>
+    <section class="card"><h2>Registro de actividad</h2>{{ registro(historial) }}</section>
+  </aside>
+</div>
+<div class="barra-acciones"><a class="btn btn-neutro" href="{{ url_for('auth.inicio') }}">Volver</a></div>
+{% endblock %}

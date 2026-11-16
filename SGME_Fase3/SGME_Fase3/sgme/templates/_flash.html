@@ -1,0 +1,5 @@
+{# Kate Crosthwaite · 8-1009-1386
+   Parcial que muestra los mensajes de confirmación y de error de la petición anterior. #}
+{% with mensajes = get_flashed_messages(with_categories=true) %}
+{% for categoria, texto in mensajes %}<div class="flash flash-{{ categoria }}" role="alert">{{ texto }}</div>{% endfor %}
+{% endwith %}

@@ -1,0 +1,26 @@
+{# Kate Crosthwaite · 8-1009-1386
+   Listado de CU-03: solicitudes en «Pendiente de validación» para Secretaría Académica. #}
+{% extends "base.html" %}
+{% from "_macros.html" import kpi with context %}
+{% block titulo %}Solicitudes pendientes de validación{% endblock %}
+{% block h1 %}Validar Requisitos Académicos{% endblock %}
+{% block subtitulo %}Solicitudes enviadas por los estudiantes que esperan la validación de sus requisitos académicos.{% endblock %}
+{% block cuerpo %}
+<div class="kpis">
+  {{ kpi('validar', solicitudes|length, 'Pendientes de validación') }}
+  {{ kpi('calendario', solicitudes[0].fecha_registro|fecha if solicitudes else '—', 'Solicitud más antigua', 't-oro') }}
+</div>
+<section class="card">
+  <h2>Solicitudes pendientes de validación académica</h2>
+  <div class="tabla-envoltura"><table class="tabla">
+    <thead><tr><th>Número</th><th>Estudiante</th><th>Cédula</th><th>Modalidad</th><th>Título del trabajo</th><th>Registro</th><th></th></tr></thead>
+    <tbody>
+    {% for s in solicitudes %}
+      <tr><td class="num">{{ s.numero }}</td><td>{{ s.nombre_completo }}</td><td>{{ s.cedula }}</td><td>{{ s.modalidad }}</td>
+          <td>{{ s.titulo }}</td><td class="num">{{ s.fecha_registro|fecha }}</td>
+          <td class="der"><a class="btn btn-primario btn-sm" href="{{ url_for('validacion.validar', solicitud_id=s.id) }}">{{ icono('validar', 15) }} Validar</a></td></tr>
+    {% else %}<tr><td colspan="7" class="vacio">No hay solicitudes pendientes de validación académica.</td></tr>{% endfor %}
+    </tbody>
+  </table></div>
+</section>
+{% endblock %}

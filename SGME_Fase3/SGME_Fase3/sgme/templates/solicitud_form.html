@@ -1,0 +1,106 @@
+{# Kate Crosthwaite · 8-1009-1386
+   Formulario de CU-02: datos del estudiante autocompletados desde su cuenta, modalidad, documentos requeridos, borrador y envío. #}
+{% extends "base.html" %}
+{% from "_macros.html" import bloqueado with context %}
+{% block titulo %}Registrar modalidad de egreso{% endblock %}
+{% block h1 %}Registrar Modalidad de Egreso{% endblock %}
+{% block subtitulo %}Completa los datos de tu trabajo de graduación y adjunta los documentos requeridos. Puedes guardar un borrador y continuar después.{% endblock %}
+{% block cuerpo %}
+{% set err = campos_error %}
+<form method="post" enctype="multipart/form-data" novalidate
+      action="{{ url_for('solicitud.registrar', solicitud_id=s.id) if s.id else url_for('solicitud.registrar') }}">
+<input type="hidden" name="csrf" value="{{ csrf() }}">
+<div class="pantalla p-2">
+  <div>
+    <section class="card">
+      <h2>Información del estudiante</h2>
+      <p class="autocompletado">{{ icono('candado', 14) }} Los campos en gris se completaron automáticamente con su correo institucional y no se pueden editar.</p>
+      <div class="rejilla-3">
+        {% if 'cedula' in de_cuenta %}{{ bloqueado('Cédula', s.cedula) }}{% else %}
+        <label class="campo{{ ' invalido' if 'cedula' in err }}">Cédula <i class="req">*</i>
+          <input name="cedula" value="{{ s.cedula }}" placeholder="Ingrese su número de cédula" autocomplete="off"></label>{% endif %}
+
+        {% if 'nombre_completo' in de_cuenta %}{{ bloqueado('Nombre completo', s.nombre_completo) }}{% else %}
+        <label class="campo{{ ' invalido' if 'nombre_completo' in err }}">Nombre completo <i class="req">*</i>
+          <input name="nombre_completo" value="{{ s.nombre_completo }}" placeholder="Ingrese su nombre completo"></label>{% endif %}
+
+        {% if 'facultad_id' in de_cuenta %}
+          {{ bloqueado('Facultad', (cat.facultades|selectattr('id', 'equalto', s.facultad_id)|first).nombre) }}
+        {% else %}
+        <label class="campo{{ ' invalido' if 'facultad_id' in err }}">Facultad <i class="req">*</i>
+          <select name="facultad_id" id="facultad"><option value="">Seleccione su facultad</option>
+            {% for f in cat.facultades %}<option value="{{ f.id }}" {{ 'selected' if s.facultad_id == f.id }}>{{ f.nombre }}</option>{% endfor %}
+          </select></label>{% endif %}
+
+        {% if 'carrera_id' in de_cuenta %}
+          {{ bloqueado('Carrera', (cat.carreras|selectattr('id', 'equalto', s.carrera_id)|first).nombre) }}
+        {% else %}
+        <label class="campo{{ ' invalido' if 'carrera_id' in err }}">Carrera <i class="req">*</i>
+          <select name="carrera_id" id="carrera"><option value="">Seleccione su carrera</option>
+            {% for c in cat.carreras %}<option value="{{ c.id }}" data-facultad="{{ c.facultad_id }}" {{ 'selected' if s.carrera_id == c.id }}>{{ c.nombre }}</option>{% endfor %}
+          </select></label>{% endif %}
+
+        {% if 'correo_institucional' in de_cuenta %}{{ bloqueado('Correo institucional', s.correo_institucional) }}{% else %}
+        <label class="campo{{ ' invalido' if 'correo_institucional' in err }}">Correo institucional <i class="req">*</i>
+          <input type="email" name="correo_institucional" value="{{ s.correo_institucional }}" placeholder="Ingrese su correo institucional"></label>{% endif %}
+
+        <label class="campo{{ ' invalido' if 'telefono' in err }}">Teléfono <i class="req">*</i>
+          <input name="telefono" value="{{ s.telefono }}" placeholder="Ingrese su número de teléfono"></label>
+
+        {{ bloqueado('Índice académico', ('%.2f'|format(academica.indice_academico)) if academica else None) }}
+        {{ bloqueado('Año que cursa', academica.anio_que_cursa if academica else None) }}
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Información de la modalidad de egreso</h2>
+      <div class="rejilla-2">
+        <label class="campo{{ ' invalido' if 'modalidad_id' in err }}">Modalidad de egreso <i class="req">*</i>
+          <select name="modalidad_id" id="modalidad"><option value="">Seleccione modalidad</option>
+            {% for m in cat.modalidades %}<option value="{{ m.id }}" {{ 'selected' if s.modalidad_id == m.id }}>{{ m.nombre }}</option>{% endfor %}
+          </select></label>
+        <label class="campo{{ ' invalido' if 'titulo' in err }}">Título del trabajo <i class="req">*</i>
+          <input name="titulo" value="{{ s.titulo }}" placeholder="Ingrese el título del trabajo"></label>
+        <label class="campo{{ ' invalido' if 'asesor_id' in err }}">Profesor asesor <i class="req">*</i>
+          <select name="asesor_id"><option value="">Seleccione profesor asesor</option>
+            {% for a in cat.asesores %}<option value="{{ a.id }}" {{ 'selected' if s.asesor_id == a.id }}>{{ a.nombre_completo }}</option>{% endfor %}
+          </select></label>
+        <label class="campo{{ ' invalido' if 'descripcion' in err }}">Descripción del trabajo <i class="req">*</i>
+          <textarea name="descripcion" id="descripcion" rows="4" data-max="1000" data-contador="#contador-descripcion"
+                    placeholder="Describa brevemente el objetivo, alcance y temática del trabajo...">{{ s.descripcion }}</textarea>
+          <span class="contador" id="contador-descripcion">0 / 1000</span></label>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Documentos requeridos</h2>
+      <div class="aviso-formatos">{{ icono('nuevo', 26) }}<div>Formatos permitidos: PDF, DOCX<br>Tamaño máximo por archivo: 20 MB</div></div>
+      <div id="documentos"></div>
+    </section>
+  </div>
+
+  <aside>
+    <section class="card"><h2><span class="chip">{{ icono('check', 15) }}</span>Progreso de la solicitud</h2>
+      <div class="progreso"><div class="progreso-barra"><span id="progreso-relleno"></span></div><strong id="progreso-texto">0%</strong></div>
+      <p class="nota" id="progreso-detalle" style="margin:10px 0 0"></p></section>
+    <section class="card"><h2>Estado inicial</h2>
+      <div class="estado-caja">{{ icono('info', 17) }} Pendiente de validación</div>
+      <p class="nota">Una vez enviada tu solicitud, será revisada por la Secretaría Académica para validar tus requisitos.</p></section>
+    <section class="card"><h2>Recomendaciones</h2>
+      <ul class="lista">
+        <li>Asegúrate de completar todos los campos obligatorios (*).</li>
+        <li>Verifica que los documentos sean legibles.</li>
+        <li>El tamaño máximo por archivo es de 20 MB.</li>
+        <li>Formatos permitidos: PDF, DOCX.</li>
+      </ul></section>
+  </aside>
+</div>
+<div class="barra-acciones">
+  <a class="btn btn-neutro" href="{{ url_for('solicitud.inicio') }}"
+     data-confirmar="¿Desea cancelar el registro? Los cambios que no haya guardado se perderán.">Cancelar</a>
+  <button class="btn btn-sec" type="submit" name="accion" value="borrador">Guardar borrador</button>
+  <button class="btn btn-primario" type="submit" name="accion" value="enviar">{{ icono('enviar', 16) }} Enviar solicitud</button>
+</div>
+</form>
+<script type="application/json" id="datos-docs">{{ {"requeridos": cat.documentos, "actuales": actuales, "errores": err|list, "mensajes": mensajes_doc}|tojson }}</script>
+{% endblock %}
